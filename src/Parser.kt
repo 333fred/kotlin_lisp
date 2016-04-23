@@ -4,7 +4,7 @@ import java.util.*
  * Simple LISP parser that I'm making to play around with Kotlin
  */
 
-fun main(x: Array<String>) = println("${testParse("(Hello world (this \"\\(is a test\\)\" (of the parser)))")}")
+fun main(x: Array<String>) = println("${testParse("(Hello world (this \"(is a test)\" (of the parser )))")}")
 
 fun readExpr(): String {
     val expr = StringBuilder()
@@ -36,6 +36,15 @@ fun testParse(expr: String): SExpr {
     return testParseTokens(iter.next(), iter).first ?: nullAtom
 }
 
+/**
+ * Parses a token, determining whether it is an atom or subexpression, and returning the
+ * full SExpr found
+ *
+ * @param curChar The character to start parsing on
+ * @param iter The remaining characters to parse
+ * @return If an SExpr was found, the SExpr, and whether or not the expr was a closing paren. The only time that null
+ *         will be returned for the SExpr is when a closing paren is found.
+ */
 fun testParseTokens(curChar: Char, iter: Iterator<Char>): Pair<SExpr?, Boolean> {
     var finalChar = curChar
     while (isWhitespace(finalChar)) {
@@ -54,6 +63,12 @@ fun testParseTokens(curChar: Char, iter: Iterator<Char>): Pair<SExpr?, Boolean> 
     }
 }
 
+/**
+ * Parses a subexpression from the given characters
+ *
+ * @param iter The characters to parse from
+ * @return The SubExpr containing all parsed subexpressions
+ */
 fun testParseList(iter: Iterator<Char>): SExpr {
     val subExprs = ArrayList<SExpr>()
 
@@ -72,6 +87,12 @@ fun testParseList(iter: Iterator<Char>): SExpr {
     return SubExpr(subExprs)
 }
 
+/**
+ * Parses a string from the given character iterator
+ *
+ * @param iter The character stream to parse a string from
+ * @return The atom with the parsed string inside
+ */
 fun parseString(iter: Iterator<Char>): SExpr {
     var escaped = false
     var loop = true
@@ -105,6 +126,14 @@ fun parseString(iter: Iterator<Char>): SExpr {
     return Atom(sb.toString())
 }
 
+/**
+ * Parses a given character and iterator for a single atom, returning the atom and whether that
+ * atom ended with whitespace or a parenthesis
+ *
+ * @param curChar The character that starts the atom
+ * @param iter The iterator over all remaining characters
+ * @return The parsed atom, and true if the atom ended with a closing parenthesis
+ */
 fun parseAtom(curChar: Char, iter: Iterator<Char>): Pair<SExpr, Boolean> {
     val sb = StringBuilder()
     var encounteredCloseParen = false
@@ -138,13 +167,13 @@ fun isWhitespace(curChar: Char): Boolean {
 interface SExpr
 
 data class Atom(val expr: String) : SExpr {
-    //    override fun toString(): String {
-    //        return expr
-    //    }
+    override fun toString(): String {
+        return expr
+    }
 }
 
 data class SubExpr(val exprs: List<SExpr>) : SExpr {
-    //    override fun toString(): String {
-    //        return "( ${exprs.joinToString { it.toString() + " " }})"
-    //    }
+    override fun toString(): String {
+        return "( ${exprs.joinToString { it.toString() + " " }})"
+    }
 }
