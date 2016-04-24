@@ -11,7 +11,33 @@ fun interp(expr: SExpr, env: Environment): Value {
 }
 
 fun interpSubExpr(expr: SubExpr, env: Environment): Value {
-    return NumV(10.0)
+    // First, we interpret the first element of the expression, and get some result from that
+    // TODO: This currently will error if the expression is ()
+    val exprs = expr.exprs
+    val rawArgs = exprs.drop(1)
+    val firstExpr = interp(exprs.first(), env)
+
+    // Next, we attempt to do something based on the return type. For built-ins, we call the function with the
+    // current environment and expressions. For closures, we bind the arguments and call the closure
+    // For everything else, we make sure that there are no other args. If there are, it's supposed to be a function
+    // call, but interp'ing the first arg didn't return a function, so we throw an exception. Otherwise, we just
+    // return the found value
+    return when (firstExpr) {
+        is BuiltinV -> firstExpr.action(rawArgs, env)
+        is ClosV -> {
+            if (rawArgs.size != firstExpr.args.size)
+                throw RuntimeException("Mismatched arg lengths. Given $rawArgs, expected ${firstExpr.args}")
+            val args = firstExpr.args.map { Atom(it.sym) }.zip(exprs.drop(1).map { interp(it, env) })
+            interp(firstExpr.body, env.extendEnv(args))
+        }
+        else -> {
+            if (rawArgs.isNotEmpty()) {
+                throw RuntimeException("Gave args to $firstExpr. Args were $rawArgs.\n$env")
+            }
+
+            firstExpr
+        }
+    }
 }
 
 fun interpAtom(expr: Atom, env: Environment): Value {

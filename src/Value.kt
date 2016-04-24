@@ -62,4 +62,4 @@ data class BoolV(val bool: Boolean) : Value
  * This class handles built-in functionality that can't be easily defined in terms of the language itself. This is
  * things like math operations, let, and so on
  */
-data class BuiltinV(val action: (vals: Array<Value>, env: Environment) -> Value) : Value
+data class BuiltinV(val action: (vals: List<SExpr>, env: Environment) -> Value) : Value
