@@ -33,7 +33,7 @@ val nullAtom = Atom("NULL")
 
 fun testParse(expr: String): SExpr {
     val iter = expr.iterator()
-    return testParseTokens(iter.next(), iter).first ?: nullAtom
+    return parseTokens(iter.next(), iter).first ?: nullAtom
 }
 
 /**
@@ -45,7 +45,7 @@ fun testParse(expr: String): SExpr {
  * @return If an SExpr was found, the SExpr, and whether or not the expr was a closing paren. The only time that null
  *         will be returned for the SExpr is when a closing paren is found.
  */
-fun testParseTokens(curChar: Char, iter: Iterator<Char>): Pair<SExpr?, Boolean> {
+fun parseTokens(curChar: Char, iter: Iterator<Char>): Pair<SExpr?, Boolean> {
     var finalChar = curChar
     while (isWhitespace(finalChar)) {
         if (iter.hasNext()) {
@@ -56,7 +56,7 @@ fun testParseTokens(curChar: Char, iter: Iterator<Char>): Pair<SExpr?, Boolean> 
     }
 
     return when (finalChar) {
-        '(' -> Pair(testParseList(iter), false)
+        '(' -> Pair(parseList(iter), false)
         ')' -> Pair(null, true)
         '"' -> Pair(parseString(iter), false)
         else -> parseAtom(curChar, iter)
@@ -69,11 +69,11 @@ fun testParseTokens(curChar: Char, iter: Iterator<Char>): Pair<SExpr?, Boolean> 
  * @param iter The characters to parse from
  * @return The SubExpr containing all parsed subexpressions
  */
-fun testParseList(iter: Iterator<Char>): SExpr {
+fun parseList(iter: Iterator<Char>): SExpr {
     val subExprs = ArrayList<SExpr>()
 
     while (iter.hasNext()) {
-        val (atom, closeParen) = testParseTokens(iter.next(), iter)
+        val (atom, closeParen) = parseTokens(iter.next(), iter)
 
         if (atom != null) {
             subExprs.add(atom)
@@ -97,6 +97,7 @@ fun parseString(iter: Iterator<Char>): SExpr {
     var escaped = false
     var loop = true
     val sb = StringBuilder()
+    sb.append('"')
     while (iter.hasNext() && loop) {
         val nextChar = iter.next()
         when (nextChar) {
@@ -109,8 +110,8 @@ fun parseString(iter: Iterator<Char>): SExpr {
                 }
             }
             '"' -> {
+                sb.append(nextChar)
                 if (escaped) {
-                    sb.append(nextChar)
                     escaped = false
                 } else {
                     loop = false
@@ -169,6 +170,22 @@ interface SExpr
 data class Atom(val expr: String) : SExpr {
     override fun toString(): String {
         return expr
+    }
+
+    fun convertAtom(): Value? {
+        try {
+            return NumV(expr.toDouble())
+        } catch (e: NumberFormatException) {
+            if (expr.equals("true", true) || expr.equals("false", true)) {
+                return BoolV(expr.toBoolean())
+            } else {
+                if (expr.length >= 2 && expr.first() == '"' && expr.last() == '"') {
+                    return SymV(expr.substringAfter('"').substringBeforeLast('"'))
+                } else {
+                    return null
+                }
+            }
+        }
     }
 }
 
