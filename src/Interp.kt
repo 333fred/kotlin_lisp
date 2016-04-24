@@ -24,12 +24,7 @@ fun interpSubExpr(expr: SubExpr, env: Environment): Value {
     // return the found value
     return when (firstExpr) {
         is BuiltinV -> firstExpr.action(rawArgs, env)
-        is ClosV -> {
-            if (rawArgs.size != firstExpr.args.size)
-                throw RuntimeException("Mismatched arg lengths. Given $rawArgs, expected ${firstExpr.args}")
-            val args = firstExpr.args.map { Atom(it.sym) }.zip(exprs.drop(1).map { interp(it, env) })
-            interp(firstExpr.body, env.extendEnv(args))
-        }
+        is ClosV -> interpClosure(firstExpr, rawArgs, env)
         else -> {
             if (rawArgs.isNotEmpty()) {
                 throw RuntimeException("Gave args to $firstExpr. Args were $rawArgs.\n$env")
@@ -38,6 +33,13 @@ fun interpSubExpr(expr: SubExpr, env: Environment): Value {
             firstExpr
         }
     }
+}
+
+fun interpClosure(closV: ClosV, rawArgs: List<SExpr>, env: Environment): Value {
+    if (rawArgs.size != closV.args.size)
+        throw RuntimeException("Mismatched arg lengths. Given $rawArgs, expected ${closV.args}")
+    val args = closV.args.map { Atom(it.sym) }.zip(rawArgs.map { interp(it, env) })
+    return interp(closV.body, env.extendEnv(args))
 }
 
 fun interpAtom(expr: Atom, env: Environment): Value {
