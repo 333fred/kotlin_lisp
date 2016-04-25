@@ -18,35 +18,34 @@ fun funBuiltIn(els: List<SExpr>, env: Environment): ClosV {
         throw RuntimeException("Incorrect arguments to fun! Syntax is (fun (args) body). Provided $els")
     }
 
-    val argList = els.first()
-    val args = when (argList) {
-        is SubExpr -> argList.exprs.map {
-            interp(it, env, false)
-        }
-        is Atom -> listOf(interp(argList, env, false))
-        else -> throw RuntimeException("Unknown com.fsilberberg.lisp.SExpr type. $argList")
+    val sexpr = els.first()
+    val argList = when (sexpr) {
+        is SubExpr -> sexpr.exprs
+        is Atom -> listOf(sexpr)
+        else -> throw RuntimeException("Unknown sexpr! $sexpr")
     }
 
-    val body = LazyV(els.component2(), env)
-    return args.foldRight(Pair<ClosV?, Boolean>(null, true)) {
-        arg, pair ->
-        val convertArg = { a: Value ->
-            when (a) {
-                is ClosV -> throw RuntimeException("ClosV cannot be a parameter to a function! Given $els.\n$env")
-                is LazyV -> throw RuntimeException("LazyV cannot be a parameter to a function! Given $els.\n$env")
-                else -> SymV(a.argString())
-            }
-        }
+    // We generate a new binding for fun just in case the user evilly redefined fun on us. Users are evil
+    var funSym = Atom(UUID.randomUUID().toString())
+    while (env.lookup(funSym) != null) {
+        funSym = Atom(UUID.randomUUID().toString())
+    }
+    val funEnv = env.extendEnv(listOf(Pair(funSym, BuiltinV(::funBuiltIn, "fun"))))
 
-        val (closV, first) = pair
-        if (first) {
-            Pair(ClosV(convertArg(arg), body, env), false)
+    return if (argList.size == 0) {
+        ClosV(ArrayList(), els.component2(), env)
+    } else {
+        val firstArg = interp(argList.first(), env, false)
+        ClosV(when (firstArg) {
+            is ClosV -> throw RuntimeException("Cannot use a ClosV as a function parameter! Given $firstArg")
+            else -> listOf(SymV(firstArg.argString()))
+        }, if (argList.size == 1) {
+            els.component2()
         } else {
-            // If we're not first, then closV MUST not be null, or Kotlin is broken
-            Pair(ClosV(convertArg(arg), closV!!, env), false)
-        }
-    }.first ?: ClosV(null, body, env)
-
+            // Use our fun replacement to ensure it works
+            SubExpr(listOf(funSym, SubExpr(argList.drop(1)), els.component2()))
+        }, if (argList.size > 1) funEnv else env)
+    }
 }
 
 val letName = "let"
@@ -72,14 +71,18 @@ fun letBuiltIn(els: List<SExpr>, env: Environment): Value {
         throw RuntimeException("Bindings must be a symbol bound to a value. Given $bindings.")
     }
 
-    val (symbols, values) = bindings.fold(Pair(ArrayList<SExpr>(), ArrayList<SExpr>())) {
+    val (symbols, values) = bindings.fold(Pair(ArrayList<SymV>(), ArrayList<SExpr>())) {
         pair, expr ->
-        pair.first.add(expr.exprs.component1())
+        val interpedArg = interp(expr.exprs.component1(), env, false)
+        pair.first.add(when (interpedArg) {
+            is ClosV -> throw RuntimeException("Cannot convert a ClosV to a let binding arg! Given $interpedArg.")
+            else -> SymV(interpedArg.argString())
+        })
         pair.second.add(expr.exprs.component2())
         pair
     }
 
-    val closV = funBuiltIn(listOf(SubExpr(symbols), els.component2()), env)
+    val closV = ClosV(symbols, els.component2(), env)
     return interpClosure(closV, values, env)
 }
 

@@ -1,7 +1,5 @@
 package com.fsilberberg.lisp
 
-import java.util.*
-
 /**
  * Interpreter for my simple LISP
  */
@@ -41,24 +39,20 @@ fun interpSubExpr(expr: SubExpr, env: Environment, errorOnUnbound: Boolean = tru
 }
 
 fun interpClosure(closV: ClosV, rawArgs: List<SExpr>, env: Environment, errorOnUnbound: Boolean = true): Value {
-    // Ensure that the number of args are correct
-    if ((closV.arg == null && rawArgs.size != 0) ||
-            (closV.body is LazyV && rawArgs.size != 1)) {
-        throw RuntimeException("Incorrect number of arguments provided to function! Provided $rawArgs.\n$closV")
-    }
+    val args = closV.args.map { Atom(it.str) }.zip(rawArgs.map { interp(it, env, errorOnUnbound) })
 
-    val arg = if (rawArgs.size > 1) {
-        listOf(Pair(Atom(closV.arg?.str ?: ""), interp(rawArgs.first(), env, errorOnUnbound)))
+    // If there are 0 or 1 args, the closure will return a final value. Otherwise, we partially apply until
+    // there are no more args
+    val closureInterp = interp(closV.body, closV.env.extendEnv(args), errorOnUnbound)
+    return reinterpIfNecessary(if (rawArgs.size > closV.args.size) {
+        when (closureInterp) {
+            is ClosV -> interpClosure(closureInterp, rawArgs.drop(1), env, errorOnUnbound)
+            is BuiltinV -> closureInterp.action(rawArgs.drop(1), env)
+            else -> throw RuntimeException("Cannot interp non-closure!")
+        }
     } else {
-        ArrayList<Pair<Atom, Value>>()
-    }
-
-    return reinterpIfNecessary(
-            when (closV.body) {
-                is ClosV -> interpClosure(closV.body, rawArgs.drop(1), closV.env.extendEnv(arg), errorOnUnbound)
-                is LazyV -> interp(closV.body.body, closV.env.extendEnv(arg), errorOnUnbound)
-                else -> throw RuntimeException("Unknown value as the body of a closure! Received ${closV.body}")
-            }, env)
+        closureInterp
+    }, env)
 }
 
 fun reinterpIfNecessary(value: Value, env: Environment): Value {
