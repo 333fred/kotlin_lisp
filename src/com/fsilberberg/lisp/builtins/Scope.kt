@@ -22,12 +22,12 @@ fun funBuiltIn(els: List<SExpr>, env: Environment): ClosV {
     val args = when (argList) {
         is SubExpr -> argList.exprs.map {
             when (it) {
-                is Atom -> SymV(it.expr)
+                is Atom -> StringV(it.expr)
                 else -> throw RuntimeException("Parameters of a function or let must be a single atom. " +
                         "Future improvements will remove this limitation. Received $it")
             }
         }
-        is Atom -> listOf(SymV(argList.expr))
+        is Atom -> listOf(StringV(argList.expr))
         else -> throw RuntimeException("Unknown com.fsilberberg.lisp.SExpr type. $argList")
     }
 

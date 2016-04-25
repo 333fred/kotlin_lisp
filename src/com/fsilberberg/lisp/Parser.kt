@@ -182,7 +182,7 @@ data class Atom(val expr: String) : SExpr {
                 return BoolV(expr.toBoolean())
             } else {
                 if (expr.length >= 2 && expr.first() == '"' && expr.last() == '"') {
-                    return SymV(expr.substringAfter('"').substringBeforeLast('"'))
+                    return StringV(expr.substringAfter('"').substringBeforeLast('"'))
                 } else {
                     return null
                 }

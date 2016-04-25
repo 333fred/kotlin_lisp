@@ -57,7 +57,7 @@ fun interpAtom(expr: Atom, env: Environment): Value {
             finalVal -> continueLoop = false
             is BoolV -> curAtom = Atom(curVal.bool.toString())
             is NumV -> curAtom = Atom(curVal.num.toString())
-            is SymV -> curAtom = Atom(curVal.sym)
+            is StringV -> curAtom = Atom(curVal.sym)
             else -> continueLoop = false
         }
 

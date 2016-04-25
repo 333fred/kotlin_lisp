@@ -25,11 +25,11 @@ class UnitTests {
     }
 
     @Test fun simpleStringAddition() {
-        Assert.assertEquals(SymV("Hello World!"), runCode("(+ \"Hello\" \" \" \"World!\")", builtInEnv))
+        Assert.assertEquals(StringV("Hello World!"), runCode("(+ \"Hello\" \" \" \"World!\")", builtInEnv))
     }
 
     @Test fun simpleBoolAddition() {
-        Assert.assertEquals(SymV("false true"), runCode("(+ false \" \" true)", builtInEnv))
+        Assert.assertEquals(StringV("false true"), runCode("(+ false \" \" true)", builtInEnv))
     }
 
     @Test fun simpleOverride() {
@@ -37,7 +37,7 @@ class UnitTests {
     }
 
     @Test fun overrideLet() {
-        Assert.assertEquals(SymV("let"), runCode("(let ((let \"let\")) let)", builtInEnv))
+        Assert.assertEquals(StringV("let"), runCode("(let ((let \"let\")) let)", builtInEnv))
     }
 
     @Test fun simpleSubTest() {

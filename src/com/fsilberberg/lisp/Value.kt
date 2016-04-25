@@ -1,7 +1,7 @@
 package com.fsilberberg.lisp
 
 enum class ValEnum {
-    NumV, ClosV, SymV, BoolV, BuiltInV
+    NumV, ClosV, StringV, BoolV, BuiltInV
 }
 
 /**
@@ -17,14 +17,14 @@ data class NumV(val num: Double) : Value {
     override fun getEnum(): ValEnum = ValEnum.NumV
 }
 
-data class ClosV(val args: List<SymV>, val body: SExpr, val env: Environment) : Value {
+data class ClosV(val args: List<StringV>, val body: SExpr, val env: Environment) : Value {
     override fun argString(): String = toString()
     override fun getEnum(): ValEnum = ValEnum.ClosV
 }
 
-data class SymV(val sym: String) : Value {
+data class StringV(val sym: String) : Value {
     override fun argString(): String = sym
-    override fun getEnum(): ValEnum = ValEnum.SymV
+    override fun getEnum(): ValEnum = ValEnum.StringV
 }
 
 data class BoolV(val bool: Boolean) : Value {

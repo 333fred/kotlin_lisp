@@ -22,8 +22,8 @@ fun plusBuiltIn(els: List<SExpr>, env: Environment): Value {
     val finalType = interpedArgs.fold(ValEnum.NumV) { curType, arg ->
         when (arg) {
             is NumV -> curType
-            is SymV -> ValEnum.SymV
-            is BoolV -> ValEnum.SymV
+            is StringV -> ValEnum.StringV
+            is BoolV -> ValEnum.StringV
             else -> throw RuntimeException("Addition must be between strings, booleans, or numbers! Received $arg")
         }
     }
@@ -36,7 +36,7 @@ fun plusBuiltIn(els: List<SExpr>, env: Environment): Value {
             }
         }.fold(0.0) { acc, num -> acc + num })
     } else {
-        return SymV(interpedArgs.map { it.argString() }.fold("") { acc, str -> acc + str })
+        return StringV(interpedArgs.map { it.argString() }.fold("") { acc, str -> acc + str })
     }
 }
 
