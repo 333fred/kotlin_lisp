@@ -10,8 +10,10 @@ val plusPair = defineFunPair("+", ::plusBuiltIn)
 
 /**
  * Defines the + operation in the language. This tries to do the "right" thing when it comes to arguments of differing
- * types. If the args are all NumV's, they are added as you'd expect. If any are strings or booleans, they are all
- * converted to strings and concatenated, in left-right order. You cannot concat closures or built-ins.
+ * types. If the args are all NumV's, they are added as you'd expect. If any are symbols or booleans, they are all
+ * converted to symbols and concatenated, in left-right order. You cannot concat closures or built-ins. If there are
+ * any strings, everything is converted to a string and concatenated in left-right order. This has precedence over
+ * symbol conversion.
  *
  * @param els The list of operands to add
  * @param env The environment to interp the operands with
@@ -23,8 +25,8 @@ fun plusBuiltIn(els: List<SExpr>, env: Environment): Value {
         when (arg) {
             is NumV -> curType
             is StringV -> ValEnum.StringV
-            is BoolV -> ValEnum.StringV
-            is SymV -> ValEnum.StringV
+            is BoolV -> if (curType == ValEnum.StringV) ValEnum.StringV else ValEnum.SymV
+            is SymV -> if (curType == ValEnum.StringV) ValEnum.StringV else ValEnum.SymV
             else -> throw RuntimeException("Addition must be between strings, booleans, or numbers! Received $arg")
         }
     }
@@ -36,6 +38,8 @@ fun plusBuiltIn(els: List<SExpr>, env: Environment): Value {
                 else -> throw RuntimeException("Interp Error! Cannot reach state!")
             }
         }.fold(0.0) { acc, num -> acc + num })
+    } else if (finalType == ValEnum.SymV) {
+        return SymV(interpedArgs.map { it.argString() }.fold("") { acc, str -> acc + str })
     } else {
         return StringV(interpedArgs.map {
             when (it) {

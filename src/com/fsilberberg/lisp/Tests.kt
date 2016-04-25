@@ -68,4 +68,8 @@ class UnitTests {
     @Test fun letMultiDefTest() {
         Assert.assertEquals(NumV(20.0), runCode("(let ((10 15) (15 20)) 10)", builtInEnv))
     }
+
+    @Test fun letBindingMadness() {
+        Assert.assertEquals(NumV(20.0), runCode("(let (((+ a b) 20)) ab)", builtInEnv))
+    }
 }
