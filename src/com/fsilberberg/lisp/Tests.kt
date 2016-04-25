@@ -156,4 +156,15 @@ class UnitTests {
     @Test fun simpleStringRest() {
         Assert.assertEquals(StringV("ello world!"), runCode("""(str-rest "Hello world!")"""))
     }
+
+    // So named because I wrote it on the whiteboard and drove my roommates insane
+    @Test fun whiteboardTest() {
+        Assert.assertEquals(NumV(32.0), runCode("""
+        (let ((20 30))
+             (let ((false (fun (x) (+ x 10)))
+                   (15 20)
+                   (+ (fun (x y) (+ x y 1))))
+                  (+ ((= 10 11) 5) 1)))
+        """))
+    }
 }

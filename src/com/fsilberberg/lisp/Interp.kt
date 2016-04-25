@@ -23,8 +23,9 @@ fun interpSubExpr(expr: SubExpr, env: Environment, errorOnUnbound: Boolean = tru
     // current environment and expressions. For closures, we bind the arguments and call the closure
     // For everything else, we make sure that there are no other args. If there are, it's supposed to be a function
     // call, but interp'ing the first arg didn't return a function, so we throw an exception. Otherwise, we just
-    // return the found value
-    return when (firstExpr) {
+    // return the found value. In all cases that return a value, if that value is of atom type, it must be converted
+    // back to an atom and reinterped, in case that atom has been redefined in the environment
+    return reinterpIfNecessary(when (firstExpr) {
         is BuiltinV -> firstExpr.action(rawArgs, env)
         is ClosV -> interpClosure(firstExpr, rawArgs, env, errorOnUnbound)
         else -> {
@@ -34,14 +35,21 @@ fun interpSubExpr(expr: SubExpr, env: Environment, errorOnUnbound: Boolean = tru
 
             firstExpr
         }
-    }
+    }, env)
 }
 
 fun interpClosure(closV: ClosV, rawArgs: List<SExpr>, env: Environment, errorOnUnbound: Boolean = true): Value {
     if (rawArgs.size != closV.args.size)
-        throw RuntimeException("Mismatched arg lengths. Given $rawArgs, expected ${closV.args}")
+        throw RuntimeException("Mismatched arg lengths. Given $rawArgs, expected ${closV.args}.\n$closV")
     val args = closV.args.map { Atom(it.str) }.zip(rawArgs.map { interp(it, env, errorOnUnbound) })
-    return interp(closV.body, env.extendEnv(args), errorOnUnbound)
+    return reinterpIfNecessary(interp(closV.body, closV.env.extendEnv(args), errorOnUnbound), env)
+}
+
+fun reinterpIfNecessary(value: Value, env: Environment): Value {
+    return when (value) {
+        is ClosV -> value
+        else -> interp(Atom(value.argString()), env)
+    }
 }
 
 fun interpAtom(expr: Atom, env: Environment, errorOnUnbound: Boolean = true): Value {
