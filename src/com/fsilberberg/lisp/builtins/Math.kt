@@ -24,6 +24,7 @@ fun plusBuiltIn(els: List<SExpr>, env: Environment): Value {
             is NumV -> curType
             is StringV -> ValEnum.StringV
             is BoolV -> ValEnum.StringV
+            is SymV -> ValEnum.StringV
             else -> throw RuntimeException("Addition must be between strings, booleans, or numbers! Received $arg")
         }
     }
@@ -36,7 +37,12 @@ fun plusBuiltIn(els: List<SExpr>, env: Environment): Value {
             }
         }.fold(0.0) { acc, num -> acc + num })
     } else {
-        return StringV(interpedArgs.map { it.argString() }.fold("") { acc, str -> acc + str })
+        return StringV(interpedArgs.map {
+            when (it) {
+                is StringV -> it.str
+                else -> it.argString()
+            }
+        }.fold("") { acc, str -> acc + str })
     }
 }
 

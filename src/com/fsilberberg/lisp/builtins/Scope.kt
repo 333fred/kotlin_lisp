@@ -21,18 +21,19 @@ fun funBuiltIn(els: List<SExpr>, env: Environment): ClosV {
     val argList = els.first()
     val args = when (argList) {
         is SubExpr -> argList.exprs.map {
-            when (it) {
-                is Atom -> StringV(it.expr)
-                else -> throw RuntimeException("Parameters of a function or let must be a single atom. " +
-                        "Future improvements will remove this limitation. Received $it")
-            }
+            interp(it, env, false)
         }
-        is Atom -> listOf(StringV(argList.expr))
+        is Atom -> listOf(interp(argList, env, false))
         else -> throw RuntimeException("Unknown com.fsilberberg.lisp.SExpr type. $argList")
     }
 
 
-    return ClosV(args, els.component2(), env)
+    return ClosV(args.map {
+        when (it) {
+            is ClosV -> throw RuntimeException("Cannot use a closure as a parameter to a function")
+            else -> SymV(it.argString())
+        }
+    }, els.component2(), env)
 }
 
 val letName = "let"

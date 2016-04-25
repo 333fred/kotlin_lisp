@@ -64,4 +64,8 @@ class UnitTests {
     @Test fun letTest() {
         Assert.assertEquals(NumV(10.0), runCode("(let ((x 10)) x)", builtInEnv))
     }
+
+    @Test fun letMultiDefTest() {
+        Assert.assertEquals(NumV(20.0), runCode("(let ((10 15) (15 20)) 10)", builtInEnv))
+    }
 }
