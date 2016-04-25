@@ -31,4 +31,4 @@ Additionally, the parameters to a function or let binding are interp'd in a spec
 ```
 
 ## Usage
-Are you crazy? Why would you want to use this lisp? I'm writing to explore writing a program in Kotlin, and to explore the logical extremes of defining everything in the environment. Please don't try to do anything real with this.
+Are you crazy? Why would you want to use this lisp? I'm writing to explore writing a program in Kotlin, and to explore the logical extremes of defining everything in the environment. Please don't try to do anything real with this. However, if you want to see some examples of the crazy things you can do in a language like this, see src/com/fsilberberg/lisp/Tests.kt.

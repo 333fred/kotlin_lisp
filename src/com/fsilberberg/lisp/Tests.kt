@@ -72,4 +72,11 @@ class UnitTests {
     @Test fun letBindingMadness() {
         Assert.assertEquals(NumV(20.0), runCode("(let (((+ a b) 20)) ab)", builtInEnv))
     }
+
+    @Test fun numBecomesFun() {
+        Assert.assertEquals(NumV(20.0), runCode("""
+        (let ((15 (fun (x) x)))
+             (15 20))
+        """, builtInEnv))
+    }
 }
