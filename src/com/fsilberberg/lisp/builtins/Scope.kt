@@ -1,9 +1,18 @@
+package com.fsilberberg.lisp.builtins
+
+import com.fsilberberg.lisp.*
 import java.util.*
+
+/**
+ * All built-in functions related to scope. This includes things like fun and let
+ */
+
+val funName = "fun"
+val funPair = Pair(Atom(funName), BuiltinV(::funBuiltIn, funName))
 
 /**
  * Contains the functions built in to the language, such as fun
  */
-
 fun funBuiltIn(els: List<SExpr>, env: Environment): ClosV {
     if (els.size != 2) {
         throw RuntimeException("Incorrect arguments to fun! Syntax is (fun (args) body). Provided $els")
@@ -11,21 +20,25 @@ fun funBuiltIn(els: List<SExpr>, env: Environment): ClosV {
 
     val argList = els.first()
     val args = when (argList) {
-        is SubExpr -> argList.exprs.map { interp(it, env) }
-        is Atom -> listOf(interp(argList, env))
-        else -> throw RuntimeException("Unknown SExpr type. $argList")
+        is SubExpr -> argList.exprs.map {
+            when (it) {
+                is Atom -> SymV(it.expr)
+                else -> throw RuntimeException("Parameters of a function or let must be a single atom. " +
+                        "Future improvements will remove this limitation. Received $it")
+            }
+        }
+        is Atom -> listOf(SymV(argList.expr))
+        else -> throw RuntimeException("Unknown com.fsilberberg.lisp.SExpr type. $argList")
     }
 
-    return ClosV(args.map {
-        when (it) {
-            is SymV -> it
-            else -> throw  RuntimeException("Arg $it is not a SymV! Cannot use as function argument.\n$env")
-        }
-    }, els.component2(), env)
+
+    return ClosV(args, els.component2(), env)
 }
 
+val letName = "let"
+val letPair = Pair(Atom(letName), BuiltinV(::letBuiltIn, letName))
 fun letBuiltIn(els: List<SExpr>, env: Environment): Value {
-    if (els.size != 0) {
+    if (els.size != 2) {
         throw RuntimeException("Incorrect arguments to let! Syntax is (let ((bind a)) body)")
     }
 

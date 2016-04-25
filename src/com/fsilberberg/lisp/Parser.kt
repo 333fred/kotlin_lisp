@@ -1,10 +1,12 @@
+package com.fsilberberg.lisp
+
 import java.util.*
 
 /**
  * Simple LISP parser that I'm making to play around with Kotlin
  */
 
-fun main(x: Array<String>) = println("${testParse("(Hello world (this \"(is a test)\" (of the parser )))")}")
+fun main(x: Array<String>) = println("${parse("(Hello world (this \"(is a test)\" (of the parser )))")}")
 
 fun readExpr(): String {
     val expr = StringBuilder()
@@ -31,19 +33,19 @@ fun readExpr(): String {
 val whitespaceRegex = Regex("\\s")
 val nullAtom = Atom("NULL")
 
-fun testParse(expr: String): SExpr {
+fun parse(expr: String): SExpr {
     val iter = expr.iterator()
     return parseTokens(iter.next(), iter).first ?: nullAtom
 }
 
 /**
  * Parses a token, determining whether it is an atom or subexpression, and returning the
- * full SExpr found
+ * full com.fsilberberg.lisp.SExpr found
  *
  * @param curChar The character to start parsing on
- * @param iter The remaining characters to parse
- * @return If an SExpr was found, the SExpr, and whether or not the expr was a closing paren. The only time that null
- *         will be returned for the SExpr is when a closing paren is found.
+ * @param iter The remaining characters to com.fsilberberg.lisp.parse
+ * @return If an com.fsilberberg.lisp.SExpr was found, the com.fsilberberg.lisp.SExpr, and whether or not the expr was a closing paren. The only time that null
+ *         will be returned for the com.fsilberberg.lisp.SExpr is when a closing paren is found.
  */
 fun parseTokens(curChar: Char, iter: Iterator<Char>): Pair<SExpr?, Boolean> {
     var finalChar = curChar
@@ -59,15 +61,15 @@ fun parseTokens(curChar: Char, iter: Iterator<Char>): Pair<SExpr?, Boolean> {
         '(' -> Pair(parseList(iter), false)
         ')' -> Pair(null, true)
         '"' -> Pair(parseString(iter), false)
-        else -> parseAtom(curChar, iter)
+        else -> parseAtom(finalChar, iter)
     }
 }
 
 /**
  * Parses a subexpression from the given characters
  *
- * @param iter The characters to parse from
- * @return The SubExpr containing all parsed subexpressions
+ * @param iter The characters to com.fsilberberg.lisp.parse from
+ * @return The com.fsilberberg.lisp.SubExpr containing all parsed subexpressions
  */
 fun parseList(iter: Iterator<Char>): SExpr {
     val subExprs = ArrayList<SExpr>()
@@ -90,7 +92,7 @@ fun parseList(iter: Iterator<Char>): SExpr {
 /**
  * Parses a string from the given character iterator
  *
- * @param iter The character stream to parse a string from
+ * @param iter The character stream to com.fsilberberg.lisp.parse a string from
  * @return The atom with the parsed string inside
  */
 fun parseString(iter: Iterator<Char>): SExpr {

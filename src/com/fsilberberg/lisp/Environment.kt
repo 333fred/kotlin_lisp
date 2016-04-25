@@ -1,3 +1,6 @@
+package com.fsilberberg.lisp
+
+import com.fsilberberg.lisp.builtins.builtIns
 import java.util.*
 
 /**
@@ -39,27 +42,11 @@ class Environment {
     }
 
     override fun toString(): String {
-        return "Environment: ${env.entries.joinToString { pair ->
+        return "com.fsilberberg.lisp.Environment: ${env.entries.joinToString { pair ->
             "${pair.key} -> ${pair.value}"
         }}"
     }
 }
 
-/**
- * The Value return types that can be used
- */
-interface Value
-
-data class NumV(val num: Double) : Value
-
-data class ClosV(val args: List<SymV>, val body: SExpr, val env: Environment) : Value
-
-data class SymV(val sym: String) : Value
-
-data class BoolV(val bool: Boolean) : Value
-
-/**
- * This class handles built-in functionality that can't be easily defined in terms of the language itself. This is
- * things like math operations, let, and so on
- */
-data class BuiltinV(val action: (vals: List<SExpr>, env: Environment) -> Value) : Value
+val emptyEnv = Environment()
+val builtInEnv = emptyEnv.extendEnv(builtIns)

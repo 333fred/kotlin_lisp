@@ -1,3 +1,5 @@
+package com.fsilberberg.lisp
+
 /**
  * Interpreter for my simple LISP
  */
@@ -6,7 +8,7 @@ fun interp(expr: SExpr, env: Environment): Value {
     return when (expr) {
         is SubExpr -> interpSubExpr(expr, env)
         is Atom -> interpAtom(expr, env)
-        else -> throw RuntimeException("Encountered unknown SExpr $expr")
+        else -> throw RuntimeException("Encountered unknown com.fsilberberg.lisp.SExpr $expr")
     }
 }
 
@@ -20,7 +22,7 @@ fun interpSubExpr(expr: SubExpr, env: Environment): Value {
     // Next, we attempt to do something based on the return type. For built-ins, we call the function with the
     // current environment and expressions. For closures, we bind the arguments and call the closure
     // For everything else, we make sure that there are no other args. If there are, it's supposed to be a function
-    // call, but interp'ing the first arg didn't return a function, so we throw an exception. Otherwise, we just
+    // call, but com.fsilberberg.lisp.interp'ing the first arg didn't return a function, so we throw an exception. Otherwise, we just
     // return the found value
     return when (firstExpr) {
         is BuiltinV -> firstExpr.action(rawArgs, env)
@@ -43,22 +45,24 @@ fun interpClosure(closV: ClosV, rawArgs: List<SExpr>, env: Environment): Value {
 }
 
 fun interpAtom(expr: Atom, env: Environment): Value {
-    var finalVal: Value? = null
+    var finalVal: Value? = env.lookup(expr) ?: expr.convertAtom()
+    var curVal = finalVal
     var curAtom = expr
-    var continueSearching = true
+    var continueLoop = true
 
-    do {
-        val curVal = env.lookup(curAtom) ?: expr.convertAtom()
-
+    while (curVal != null && continueLoop) {
+        curVal = env.lookup(curAtom)
         when (curVal) {
+        // If curVal = finalVal, we're in a loop, so exit
+            finalVal -> continueLoop = false
             is BoolV -> curAtom = Atom(curVal.bool.toString())
             is NumV -> curAtom = Atom(curVal.num.toString())
             is SymV -> curAtom = Atom(curVal.sym)
-            else -> continueSearching = false
+            else -> continueLoop = false
         }
 
         if (curVal != null) finalVal = curVal
-    } while (continueSearching)
+    }
 
     return finalVal ?: throw RuntimeException("$expr is unbound in the environment!\n$env")
 }
