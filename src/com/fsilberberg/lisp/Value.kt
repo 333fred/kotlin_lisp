@@ -1,7 +1,7 @@
 package com.fsilberberg.lisp
 
 enum class ValEnum {
-    NumV, ClosV, StringV, BoolV, SymV, BuiltInV
+    NumV, ClosV, StringV, BoolV, SymV, BuiltInV, LazyV
 }
 
 inline fun <reified T : Value> contextCast(value: Value, context: String): T {
@@ -24,7 +24,7 @@ data class NumV(val num: Double) : Value {
     override fun getEnum(): ValEnum = ValEnum.NumV
 }
 
-data class ClosV(val args: List<SymV>, val body: SExpr, val env: Environment) : Value {
+data class ClosV(val arg: SymV?, val body: Value, val env: Environment) : Value {
     override fun argString(): String = toString()
     override fun getEnum(): ValEnum = ValEnum.ClosV
 }
@@ -51,4 +51,9 @@ data class BoolV(val bool: Boolean) : Value {
 data class BuiltinV(val action: (vals: List<SExpr>, env: Environment) -> Value, val funName: String) : Value {
     override fun argString(): String = funName
     override fun getEnum(): ValEnum = ValEnum.BuiltInV
+}
+
+data class LazyV(val body: SExpr, val env: Environment) : Value {
+    override fun argString(): String = body.toString()
+    override fun getEnum(): ValEnum = ValEnum.LazyV
 }

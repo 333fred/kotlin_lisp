@@ -27,13 +27,26 @@ fun funBuiltIn(els: List<SExpr>, env: Environment): ClosV {
         else -> throw RuntimeException("Unknown com.fsilberberg.lisp.SExpr type. $argList")
     }
 
-
-    return ClosV(args.map {
-        when (it) {
-            is ClosV -> throw RuntimeException("Cannot use a closure as a parameter to a function")
-            else -> SymV(it.argString())
+    val body = LazyV(els.component2(), env)
+    return args.foldRight(Pair<ClosV?, Boolean>(null, true)) {
+        arg, pair ->
+        val convertArg = { a: Value ->
+            when (a) {
+                is ClosV -> throw RuntimeException("ClosV cannot be a parameter to a function! Given $els.\n$env")
+                is LazyV -> throw RuntimeException("LazyV cannot be a parameter to a function! Given $els.\n$env")
+                else -> SymV(a.argString())
+            }
         }
-    }, els.component2(), env)
+
+        val (closV, first) = pair
+        if (first) {
+            Pair(ClosV(convertArg(arg), body, env), false)
+        } else {
+            // If we're not first, then closV MUST not be null, or Kotlin is broken
+            Pair(ClosV(convertArg(arg), closV!!, env), false)
+        }
+    }.first ?: ClosV(null, body, env)
+
 }
 
 val letName = "let"
