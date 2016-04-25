@@ -69,3 +69,20 @@ fun letBuiltIn(els: List<SExpr>, env: Environment): Value {
     val closV = funBuiltIn(listOf(SubExpr(symbols), els.component2()), env)
     return interpClosure(closV, values, env)
 }
+
+val ifPair = defineFunPair("if", ::ifBuiltIn)
+fun ifBuiltIn(els: List<SExpr>, env: Environment): Value {
+    if (els.size != 3) {
+        throw RuntimeException("if must take 3 arguments: condition, true, false! Given $els")
+    }
+
+    val condS = els.component1()
+    val trueCaseS = els.component2()
+    val falseCaseS = els.component3()
+
+    val cond = interp(condS, env)
+    val res = if (cond !is BoolV) throw RuntimeException("if must take a boolean expression! Given $condS.\n$env")
+    else cond.bool
+
+    return if (res) interp(trueCaseS, env) else interp(falseCaseS, env)
+}

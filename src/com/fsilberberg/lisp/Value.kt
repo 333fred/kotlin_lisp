@@ -4,6 +4,13 @@ enum class ValEnum {
     NumV, ClosV, StringV, BoolV, SymV, BuiltInV
 }
 
+inline fun <reified T : Value> contextCast(value: Value, context: String): T {
+    return when (value) {
+        is T -> value
+        else -> throw RuntimeException("$context expected ${T::class}, got $value")
+    }
+}
+
 /**
  * The com.fsilberberg.lisp.Value return types that can be used
  */
