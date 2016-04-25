@@ -1,5 +1,5 @@
-# ELISP (Environment LISP)
-This is a relatively simple LISP interpreter that I'm working on to teach myself how to work in Kotlin. The general idea of this LISP is that _everything_ is defined in the environment. This includes basic constructs such as `let`, `fun`, and even `+`, `-`, `*`, `/`, and so on. Anything and everything in the language can be redefined by modifying the environment, even `let` itself. For example, this is a valid code snippet:
+# EnvLISP (Environment LISP)
+This is a relatively simple LISP interpreter that I'm working on to teach myself how to work in Kotlin. The general idea of this LISP is that _everything_ is defined in the environment. This includes basic constructs such as `let`, `fun`, `+`, `-`, `*`, `/`, and so on. Anything and everything in the language can be redefined by modifying the environment, even `let` itself. For example, this is a valid code snippet:
 
 ```lisp
 ;; Returns "let"
@@ -14,7 +14,7 @@ This language has the following features:
 
 * Static Scope
 * Pure (no mutation)
-* Full modification of every value through the environment
+* Full modification of the value of every atom through the environment
 
 As part of resolving an individual atom, the language will recursively attempt to find a final definition for a value, until it hits upon a final answer. For example:
 
